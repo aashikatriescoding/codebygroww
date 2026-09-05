@@ -1,4 +1,5 @@
 
+
 // const WatchlistItem = require("../models/WatchlistItem");
 // const { fetchAndStoreQuote, getQuoteWithFallback } = require("../services/marketDataService");
 // const { computeSignificance } = require("../services/significanceService");
@@ -6,7 +7,7 @@
 
 // const addToWatchlist = async (req, res) => {
 //   try {
-//     const { ticker, sensitivity } = req.body;
+//     const { ticker, sensitivity, companyName } = req.body;
 
 //     if (!ticker) {
 //       return res.status(400).json({ message: "Ticker is required" });
@@ -24,6 +25,7 @@
 //     const item = await WatchlistItem.create({
 //       user: req.userId,
 //       ticker: ticker.toUpperCase(),
+//       companyName: companyName || ticker.toUpperCase(),
 //       sensitivity: sensitivity || "casual",
 //     });
 
@@ -80,8 +82,6 @@
 //   }
 // };
 
-// // @route  GET /api/watchlist/feed
-// // @desc   Live prices + significance + AI "why" summaries, ranked by attention
 // const getWatchlistFeed = async (req, res) => {
 //   try {
 //     const items = await WatchlistItem.find({ user: req.userId });
@@ -95,9 +95,11 @@
 //           return {
 //             id: item._id,
 //             ticker: item.ticker,
+//             companyName: item.companyName || item.ticker,
 //             sensitivity: item.sensitivity,
 //             lastSeenPrice: item.lastSeenPrice,
 //             lastSeenAt: item.lastSeenAt,
+//             timesChecked: item.timesChecked || 0,
 //             currentPrice: quote.price,
 //             dayChangePercent: quote.dayChangePercent,
 //             fetchedAt: quote.fetchedAt,
@@ -108,6 +110,7 @@
 //           return {
 //             id: item._id,
 //             ticker: item.ticker,
+//             companyName: item.companyName || item.ticker,
 //             error: "No data available yet for this ticker",
 //           };
 //         }
@@ -116,7 +119,6 @@
 
 //     feed.sort((a, b) => (b.attentionScore || 0) - (a.attentionScore || 0));
 
-//     // Only call AI for flagged stocks — keeps cost/latency down, and it's cached besides
 //     const meaningfulItems = feed.filter((item) => item.isMeaningful);
 
 //     const aiSummaries = await Promise.all(
@@ -150,6 +152,7 @@
 //     const quote = await fetchAndStoreQuote(item.ticker);
 //     item.lastSeenPrice = quote.price;
 //     item.lastSeenAt = new Date();
+//     item.timesChecked = (item.timesChecked || 0) + 1;
 //     await item.save();
 
 //     res.status(200).json({ item });
@@ -176,20 +179,8 @@
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 const WatchlistItem = require("../models/WatchlistItem");
+const TickerPopularity = require("../models/TickerPopularity");
 const { fetchAndStoreQuote, getQuoteWithFallback } = require("../services/marketDataService");
 const { computeSignificance } = require("../services/significanceService");
 const { explainMove, generateDigest } = require("../services/aiService");
@@ -217,6 +208,13 @@ const addToWatchlist = async (req, res) => {
       companyName: companyName || ticker.toUpperCase(),
       sensitivity: sensitivity || "casual",
     });
+
+    // Real cross-user popularity tracking — this powers the recommendations pool
+    TickerPopularity.findOneAndUpdate(
+      { ticker: ticker.toUpperCase() },
+      { $inc: { addCount: 1 }, $set: { companyName: companyName || ticker.toUpperCase() } },
+      { upsert: true }
+    ).catch((err) => console.error("Popularity tracking failed:", err.message));
 
     res.status(201).json({ item });
   } catch (err) {
