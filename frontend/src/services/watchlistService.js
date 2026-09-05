@@ -1,5 +1,6 @@
 
 
+
 // import api from "./api";
 
 // export const getFeed = async () => {
@@ -7,8 +8,8 @@
 //   return { feed: res.data.feed, digest: res.data.digest };
 // };
 
-// export const addTicker = async (ticker, sensitivity) => {
-//   const res = await api.post("/watchlist", { ticker, sensitivity });
+// export const addTicker = async (ticker, sensitivity, companyName) => {
+//   const res = await api.post("/watchlist", { ticker, sensitivity, companyName });
 //   return res.data.item;
 // };
 
@@ -67,4 +68,9 @@ export const updateSensitivity = async (id, sensitivity) => {
 export const searchTickers = async (query) => {
   const res = await api.get(`/market/search?q=${encodeURIComponent(query)}`);
   return res.data.results;
+};
+
+export const getPopularPicks = async () => {
+  const res = await api.get("/market/popular");
+  return res.data.picks;
 };
