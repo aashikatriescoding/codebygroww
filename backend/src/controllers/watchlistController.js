@@ -1,9 +1,9 @@
-// const WatchlistItem = require("../models/WatchlistItem");
-// const { fetchAndStoreQuote } = require("../services/marketDataService");
-// const { computeSignificance } = require("../services/significanceService");
 
-// // @route  POST /api/watchlist
-// // @desc   Add a ticker to the logged-in user's watchlist
+// const WatchlistItem = require("../models/WatchlistItem");
+// const { fetchAndStoreQuote, getQuoteWithFallback } = require("../services/marketDataService");
+// const { computeSignificance } = require("../services/significanceService");
+// const { explainMove, generateDigest } = require("../services/aiService");
+
 // const addToWatchlist = async (req, res) => {
 //   try {
 //     const { ticker, sensitivity } = req.body;
@@ -34,8 +34,6 @@
 //   }
 // };
 
-// // @route  GET /api/watchlist
-// // @desc   Get all watchlist items for the logged-in user (raw, no live prices)
 // const getWatchlist = async (req, res) => {
 //   try {
 //     const items = await WatchlistItem.find({ user: req.userId }).sort({ createdAt: -1 });
@@ -46,8 +44,6 @@
 //   }
 // };
 
-// // @route  DELETE /api/watchlist/:id
-// // @desc   Remove a ticker from the watchlist
 // const removeFromWatchlist = async (req, res) => {
 //   try {
 //     const item = await WatchlistItem.findOne({ _id: req.params.id, user: req.userId });
@@ -64,8 +60,6 @@
 //   }
 // };
 
-// // @route  PATCH /api/watchlist/:id
-// // @desc   Update sensitivity (core/casual) for a ticker
 // const updateWatchlistItem = async (req, res) => {
 //   try {
 //     const { sensitivity } = req.body;
@@ -87,15 +81,15 @@
 // };
 
 // // @route  GET /api/watchlist/feed
-// // @desc   Get watchlist items with live prices + what's changed, ranked by attention
+// // @desc   Live prices + significance + AI "why" summaries, ranked by attention
 // const getWatchlistFeed = async (req, res) => {
 //   try {
 //     const items = await WatchlistItem.find({ user: req.userId });
 
-//     const feed = await Promise.all(
+//     let feed = await Promise.all(
 //       items.map(async (item) => {
 //         try {
-//           const quote = await fetchAndStoreQuote(item.ticker);
+//           const quote = await getQuoteWithFallback(item.ticker);
 //           const significance = computeSignificance(item, quote);
 
 //           return {
@@ -107,13 +101,14 @@
 //             currentPrice: quote.price,
 //             dayChangePercent: quote.dayChangePercent,
 //             fetchedAt: quote.fetchedAt,
+//             stale: quote.stale,
 //             ...significance,
 //           };
 //         } catch (err) {
 //           return {
 //             id: item._id,
 //             ticker: item.ticker,
-//             error: "Could not fetch live data",
+//             error: "No data available yet for this ticker",
 //           };
 //         }
 //       })
@@ -121,15 +116,30 @@
 
 //     feed.sort((a, b) => (b.attentionScore || 0) - (a.attentionScore || 0));
 
-//     res.status(200).json({ feed });
+//     // Only call AI for flagged stocks — keeps cost/latency down, and it's cached besides
+//     const meaningfulItems = feed.filter((item) => item.isMeaningful);
+
+//     const aiSummaries = await Promise.all(
+//       meaningfulItems.map(async (item) => ({
+//         id: item.id,
+//         summary: await explainMove(item),
+//       }))
+//     );
+
+//     feed = feed.map((item) => {
+//       const match = aiSummaries.find((s) => s.id === item.id);
+//       return match ? { ...item, aiSummary: match.summary } : item;
+//     });
+
+//     const digest = await generateDigest(meaningfulItems);
+
+//     res.status(200).json({ feed, digest });
 //   } catch (err) {
 //     console.error("Get feed error:", err.message);
 //     res.status(500).json({ message: "Server error building feed" });
 //   }
 // };
 
-// // @route  PATCH /api/watchlist/:id/seen
-// // @desc   Reset the baseline — user has now "seen" this ticker's current price
 // const markAsSeen = async (req, res) => {
 //   try {
 //     const item = await WatchlistItem.findOne({ _id: req.params.id, user: req.userId });
@@ -145,7 +155,7 @@
 //     res.status(200).json({ item });
 //   } catch (err) {
 //     console.error("Mark as seen error:", err.message);
-//     res.status(500).json({ message: "Server error updating seen status" });
+//     res.status(502).json({ message: "Could not fetch live price right now — try again shortly" });
 //   }
 // };
 
@@ -174,14 +184,19 @@
 
 
 
+
+
+
+
+
 const WatchlistItem = require("../models/WatchlistItem");
 const { fetchAndStoreQuote, getQuoteWithFallback } = require("../services/marketDataService");
 const { computeSignificance } = require("../services/significanceService");
+const { explainMove, generateDigest } = require("../services/aiService");
 
-// @route  POST /api/watchlist
 const addToWatchlist = async (req, res) => {
   try {
-    const { ticker, sensitivity } = req.body;
+    const { ticker, sensitivity, companyName } = req.body;
 
     if (!ticker) {
       return res.status(400).json({ message: "Ticker is required" });
@@ -199,6 +214,7 @@ const addToWatchlist = async (req, res) => {
     const item = await WatchlistItem.create({
       user: req.userId,
       ticker: ticker.toUpperCase(),
+      companyName: companyName || ticker.toUpperCase(),
       sensitivity: sensitivity || "casual",
     });
 
@@ -209,7 +225,6 @@ const addToWatchlist = async (req, res) => {
   }
 };
 
-// @route  GET /api/watchlist
 const getWatchlist = async (req, res) => {
   try {
     const items = await WatchlistItem.find({ user: req.userId }).sort({ createdAt: -1 });
@@ -220,7 +235,6 @@ const getWatchlist = async (req, res) => {
   }
 };
 
-// @route  DELETE /api/watchlist/:id
 const removeFromWatchlist = async (req, res) => {
   try {
     const item = await WatchlistItem.findOne({ _id: req.params.id, user: req.userId });
@@ -237,7 +251,6 @@ const removeFromWatchlist = async (req, res) => {
   }
 };
 
-// @route  PATCH /api/watchlist/:id
 const updateWatchlistItem = async (req, res) => {
   try {
     const { sensitivity } = req.body;
@@ -258,14 +271,11 @@ const updateWatchlistItem = async (req, res) => {
   }
 };
 
-// @route  GET /api/watchlist/feed
-// @desc   Live prices + what's changed, ranked by attention. Falls back to
-//         last known data (marked stale) if a live fetch fails.
 const getWatchlistFeed = async (req, res) => {
   try {
     const items = await WatchlistItem.find({ user: req.userId });
 
-    const feed = await Promise.all(
+    let feed = await Promise.all(
       items.map(async (item) => {
         try {
           const quote = await getQuoteWithFallback(item.ticker);
@@ -274,9 +284,11 @@ const getWatchlistFeed = async (req, res) => {
           return {
             id: item._id,
             ticker: item.ticker,
+            companyName: item.companyName || item.ticker,
             sensitivity: item.sensitivity,
             lastSeenPrice: item.lastSeenPrice,
             lastSeenAt: item.lastSeenAt,
+            timesChecked: item.timesChecked || 0,
             currentPrice: quote.price,
             dayChangePercent: quote.dayChangePercent,
             fetchedAt: quote.fetchedAt,
@@ -284,10 +296,10 @@ const getWatchlistFeed = async (req, res) => {
             ...significance,
           };
         } catch (err) {
-          // genuinely no data ever fetched for this ticker
           return {
             id: item._id,
             ticker: item.ticker,
+            companyName: item.companyName || item.ticker,
             error: "No data available yet for this ticker",
           };
         }
@@ -296,15 +308,29 @@ const getWatchlistFeed = async (req, res) => {
 
     feed.sort((a, b) => (b.attentionScore || 0) - (a.attentionScore || 0));
 
-    res.status(200).json({ feed });
+    const meaningfulItems = feed.filter((item) => item.isMeaningful);
+
+    const aiSummaries = await Promise.all(
+      meaningfulItems.map(async (item) => ({
+        id: item.id,
+        summary: await explainMove(item),
+      }))
+    );
+
+    feed = feed.map((item) => {
+      const match = aiSummaries.find((s) => s.id === item.id);
+      return match ? { ...item, aiSummary: match.summary } : item;
+    });
+
+    const digest = await generateDigest(meaningfulItems);
+
+    res.status(200).json({ feed, digest });
   } catch (err) {
     console.error("Get feed error:", err.message);
     res.status(500).json({ message: "Server error building feed" });
   }
 };
 
-// @route  PATCH /api/watchlist/:id/seen
-// @desc   Reset baseline — requires a live price, since a stale baseline defeats the purpose
 const markAsSeen = async (req, res) => {
   try {
     const item = await WatchlistItem.findOne({ _id: req.params.id, user: req.userId });
@@ -312,9 +338,10 @@ const markAsSeen = async (req, res) => {
       return res.status(404).json({ message: "Watchlist item not found" });
     }
 
-    const quote = await fetchAndStoreQuote(item.ticker); // live only, on purpose
+    const quote = await fetchAndStoreQuote(item.ticker);
     item.lastSeenPrice = quote.price;
     item.lastSeenAt = new Date();
+    item.timesChecked = (item.timesChecked || 0) + 1;
     await item.save();
 
     res.status(200).json({ item });
