@@ -1,313 +1,4 @@
-/* * {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-}
-
-body {
-  background: #f6f8fa;
-  color: #1f2328;
-}
-
-.auth-page {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-}
-
-.auth-form {
-  background: white;
-  padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  width: 320px;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.auth-form input,
-.auth-form button {
-  padding: 0.6rem;
-  border-radius: 6px;
-  border: 1px solid #d0d7de;
-  font-size: 0.95rem;
-}
-
-.auth-form button {
-  background: #1f6feb;
-  color: white;
-  border: none;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.dashboard {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 2rem 1.5rem;
-}
-
-.dashboard header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-}
-
-.dashboard h1 {
-  font-size: 2rem;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  color: #57606a;
-}
-
-.header-right button,
-.add-ticker-form button,
-.feed-header button {
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  border: 1px solid #d0d7de;
-  background: white;
-  cursor: pointer;
-  font-weight: 500;
-}
-
-.add-ticker-form {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.add-ticker-form input {
-  flex: 1;
-  padding: 0.6rem;
-  border-radius: 6px;
-  border: 1px solid #d0d7de;
-}
-
-.feed-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-  font-weight: 500;
-  color: #57606a;
-}
-
-.feed-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 1rem;
-}
-
-.watchlist-card {
-  background: white;
-  border: 1px solid #d0d7de;
-  border-radius: 10px;
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.watchlist-card.highlighted {
-  border: 2px solid #1f6feb;
-  box-shadow: 0 0 0 3px rgba(31, 111, 235, 0.15);
-}
-
-.card-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.ticker {
-  font-weight: 700;
-  font-size: 1.1rem;
-}
-
-.sensitivity-badge {
-  font-size: 0.7rem;
-  padding: 0.15rem 0.5rem;
-  border-radius: 999px;
-  text-transform: uppercase;
-  font-weight: 600;
-}
-
-.sensitivity-badge.core {
-  background: #ddf4ff;
-  color: #0969da;
-}
-
-.sensitivity-badge.casual {
-  background: #eaeef2;
-  color: #57606a;
-}
-
-.price-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-}
-
-.current-price {
-  font-size: 1.4rem;
-  font-weight: 700;
-}
-
-.day-change.up {
-  color: #1a7f37;
-}
-
-.day-change.down {
-  color: #c9251c;
-}
-
-.since-seen {
-  font-size: 0.85rem;
-  color: #57606a;
-}
-
-.flags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-}
-
-.flag-badge {
-  color: white;
-  font-size: 0.7rem;
-  font-weight: 600;
-  padding: 0.2rem 0.5rem;
-  border-radius: 6px;
-}
-
-.card-actions {
-  display: flex;
-  gap: 0.4rem;
-  margin-top: 0.5rem;
-}
-
-.card-actions button,
-.card-actions select {
-  flex: 1;
-  padding: 0.4rem;
-  border-radius: 6px;
-  border: 1px solid #d0d7de;
-  background: white;
-  font-size: 0.8rem;
-  cursor: pointer;
-}
-
-.remove-btn {
-  color: #c9251c;
-}
-
-.error {
-  color: #c9251c;
-  font-size: 0.85rem;
-}
-
-.error-card {
-  border-color: #c9251c;
-}
-
-.loading-screen {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  font-size: 1.2rem;
-}
-
-.add-ticker-wrapper {
-  position: relative;
-  margin-bottom: 1.5rem;
-}
-
-.suggestions-dropdown {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background: white;
-  border: 1px solid #d0d7de;
-  border-radius: 8px;
-  margin-top: 0.3rem;
-  max-height: 260px;
-  overflow-y: auto;
-  z-index: 10;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.suggestion-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.6rem 0.8rem;
-  cursor: pointer;
-  gap: 0.5rem;
-}
-
-.suggestion-item:hover {
-  background: #f6f8fa;
-}
-
-.suggestion-symbol {
-  font-weight: 700;
-  min-width: 80px;
-}
-
-.suggestion-name {
-  flex: 1;
-  color: #57606a;
-  font-size: 0.85rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.suggestion-exchange {
-  font-size: 0.75rem;
-  color: #8b949e;
-  text-transform: uppercase;
-}
-
-.hint {
-  font-size: 0.8rem;
-  color: #57606a;
-  margin-top: 0.3rem;
-}
-
-
-.freshness {
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-.freshness.live {
-  color: #1a7f37;
-}
-
-.freshness.stale {
-  color: #9a6700;
-}
- */
-
-
-
-
-
-
-
- * {
+* {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -319,7 +10,6 @@ body {
   color: #1f2328;
 }
 
-/* ---------- Auth pages ---------- */
 .auth-page {
   display: flex;
   justify-content: center;
@@ -355,7 +45,6 @@ body {
   font-weight: 600;
 }
 
-/* ---------- App shell / header ---------- */
 .app-shell {
   min-height: 100vh;
 }
@@ -368,6 +57,7 @@ body {
   padding: 0 1.5rem;
   height: 60px;
   gap: 2rem;
+  flex-wrap: wrap;
 }
 
 .app-header-left {
@@ -385,6 +75,30 @@ body {
 .app-tagline {
   font-size: 0.8rem;
   color: #8b949e;
+}
+
+.index-ticker {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.index-name {
+  color: #8b949e;
+  font-weight: 600;
+}
+
+.index-price {
+  font-weight: 700;
+}
+
+.index-change.up {
+  color: #3fb950;
+}
+
+.index-change.down {
+  color: #f85149;
 }
 
 .app-header-nav {
@@ -458,9 +172,8 @@ body {
   cursor: pointer;
 }
 
-/* ---------- Dashboard ---------- */
 .dashboard {
-  max-width: 1100px;
+  max-width: 1000px;
   margin: 0 auto;
   padding: 1.5rem;
 }
@@ -469,15 +182,17 @@ body {
   display: flex;
   gap: 0.75rem;
   margin-bottom: 1rem;
+  flex-wrap: wrap;
 }
 
+.sort-select,
 .refresh-btn {
-  padding: 0.6rem 1.2rem;
+  padding: 0.6rem 0.9rem;
   border-radius: 8px;
   border: 1px solid #d0d7de;
   background: white;
   cursor: pointer;
-  font-weight: 600;
+  font-weight: 500;
   white-space: nowrap;
 }
 
@@ -491,22 +206,12 @@ body {
 }
 
 .section-title {
-  font-size: 1rem;
+  font-size: 0.85rem;
   color: #57606a;
   margin: 1.5rem 0 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.03em;
   font-weight: 700;
-}
-
-.feed-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 1rem;
-}
-
-.quiet-list {
-  opacity: 0.75;
 }
 
 .loading-text,
@@ -516,10 +221,10 @@ body {
   text-align: center;
 }
 
-/* ---------- Add ticker ---------- */
 .add-ticker-wrapper {
   position: relative;
   flex: 1;
+  min-width: 240px;
 }
 
 .add-ticker-form {
@@ -595,41 +300,62 @@ body {
   margin-top: 0.3rem;
 }
 
-/* ---------- Watchlist card ---------- */
-.watchlist-card {
-  background: white;
-  border: 1px solid #e3e6ea;
-  border-radius: 12px;
-  padding: 1.1rem;
+/* ---------- Vertical list rows ---------- */
+.feed-list-vertical {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.6rem;
+}
+
+.quiet-list {
+  opacity: 0.8;
+}
+
+.watchlist-row {
+  background: white;
+  border: 1px solid #e3e6ea;
   border-left: 4px solid transparent;
-  transition: box-shadow 0.15s ease;
-}
-
-.watchlist-card.highlighted {
-  border-left: 4px solid #4f8ef7;
-  box-shadow: 0 4px 16px rgba(79, 142, 247, 0.15);
-}
-
-.card-top {
-  display: flex;
-  justify-content: space-between;
+  border-radius: 10px;
+  padding: 0.9rem 1.1rem;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1.2fr 1.6fr auto;
   align-items: center;
+  gap: 1rem;
+}
+
+.watchlist-row.highlighted {
+  border-left: 4px solid #4f8ef7;
+  box-shadow: 0 2px 10px rgba(79, 142, 247, 0.12);
+}
+
+.error-row {
+  grid-template-columns: 1fr 2fr auto;
+  border-left: 4px solid #c9251c;
+}
+
+.row-title {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
 }
 
 .ticker {
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 0.98rem;
+}
+
+.ticker-sub {
+  font-size: 0.72rem;
+  color: #8b949e;
 }
 
 .sensitivity-badge {
-  font-size: 0.68rem;
-  padding: 0.15rem 0.5rem;
+  font-size: 0.65rem;
+  padding: 0.1rem 0.4rem;
   border-radius: 999px;
-  text-transform: uppercase;
   font-weight: 700;
+  width: fit-content;
+  margin-top: 0.15rem;
 }
 
 .sensitivity-badge.core {
@@ -642,74 +368,105 @@ body {
   color: #57606a;
 }
 
-.price-row {
+.row-price {
   display: flex;
-  justify-content: space-between;
-  align-items: baseline;
+  flex-direction: column;
+  gap: 0.15rem;
 }
 
 .current-price {
-  font-size: 1.5rem;
+  font-size: 1.15rem;
   font-weight: 800;
 }
 
 .day-change.up {
   color: #1a7f37;
   font-weight: 600;
+  font-size: 0.85rem;
 }
 
 .day-change.down {
   color: #c9251c;
   font-weight: 600;
+  font-size: 0.85rem;
 }
 
-.freshness {
-  font-size: 0.72rem;
-  font-weight: 600;
+.row-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 0.75rem;
 }
 
 .freshness.live {
   color: #1a7f37;
+  font-weight: 600;
 }
 
 .freshness.stale {
   color: #9a6700;
+  font-weight: 600;
 }
 
 .since-seen {
-  font-size: 0.85rem;
   color: #57606a;
+}
+
+.checked-count {
+  color: #8b949e;
+}
+
+.row-signals {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
 }
 
 .flags {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
+  gap: 0.3rem;
 }
 
 .flag-badge {
   color: white;
-  font-size: 0.68rem;
+  font-size: 0.65rem;
   font-weight: 700;
-  padding: 0.22rem 0.55rem;
+  padding: 0.18rem 0.5rem;
   border-radius: 6px;
 }
 
-.card-actions {
-  display: flex;
-  gap: 0.4rem;
-  margin-top: 0.5rem;
+.ai-summary {
+  background: #f4f0ff;
+  color: #5a3ea8;
+  font-size: 0.75rem;
+  padding: 0.4rem 0.55rem;
+  border-radius: 6px;
+  font-style: italic;
 }
 
-.card-actions button,
-.card-actions select {
-  flex: 1;
-  padding: 0.45rem;
+.row-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 120px;
+}
+
+.row-actions button,
+.row-actions select {
+  padding: 0.4rem;
   border-radius: 6px;
   border: 1px solid #d0d7de;
   background: white;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   cursor: pointer;
+}
+
+.seen-btn.seen-confirmed {
+  background: #dafbe1;
+  border-color: #1a7f37;
+  color: #1a7f37;
+  font-weight: 700;
 }
 
 .remove-btn {
@@ -721,7 +478,123 @@ body {
   font-size: 0.85rem;
 }
 
-.error-card {
-  border-color: #c9251c;
-  border-left: 4px solid #c9251c;
+@media (max-width: 720px) {
+  .watchlist-row {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  .row-actions {
+    flex-direction: row;
+  }
+}
+
+
+.chat-widget {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 100;
+}
+
+.chat-fab {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #4f8ef7;
+  color: white;
+  border: none;
+  font-size: 1.4rem;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.chat-panel {
+  position: absolute;
+  bottom: 70px;
+  right: 0;
+  width: 340px;
+  height: 440px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.chat-header {
+  background: #0f1419;
+  color: white;
+  padding: 0.8rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+}
+
+.chat-header button {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.chat-bubble {
+  padding: 0.55rem 0.75rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  max-width: 85%;
+  line-height: 1.35;
+}
+
+.chat-bubble.user {
+  background: #4f8ef7;
+  color: white;
+  align-self: flex-end;
+}
+
+.chat-bubble.assistant {
+  background: #f0f2f5;
+  color: #1f2328;
+  align-self: flex-start;
+}
+
+.chat-bubble.typing {
+  opacity: 0.6;
+  font-style: italic;
+}
+
+.chat-input-row {
+  display: flex;
+  border-top: 1px solid #eaeef2;
+  padding: 0.5rem;
+  gap: 0.4rem;
+}
+
+.chat-input-row input {
+  flex: 1;
+  padding: 0.5rem;
+  border-radius: 8px;
+  border: 1px solid #d0d7de;
+  font-size: 0.85rem;
+}
+
+.chat-input-row button {
+  padding: 0.5rem 0.8rem;
+  border-radius: 8px;
+  border: none;
+  background: #4f8ef7;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
 }

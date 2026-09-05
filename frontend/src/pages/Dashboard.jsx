@@ -1,3 +1,4 @@
+
 import { useEffect, useState, useCallback } from "react";
 import {
   getFeed,
@@ -9,9 +10,12 @@ import {
 import WatchlistCard from "../components/WatchlistCard";
 import AddTickerForm from "../components/AddTickerForm";
 import Header from "../components/Header";
+import ChatWidget from "../components/ChatWidget";
+
 
 const Dashboard = () => {
   const [feed, setFeed] = useState([]);
+  const [digest, setDigest] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
@@ -20,8 +24,9 @@ const Dashboard = () => {
     if (isRefresh) setRefreshing(true);
     setError("");
     try {
-      const data = await getFeed();
+      const { feed: data, digest: aiDigest } = await getFeed();
       setFeed(data);
+      setDigest(aiDigest);
     } catch (err) {
       setError("Could not load watchlist. Try refreshing.");
     } finally {
@@ -73,7 +78,9 @@ const Dashboard = () => {
         </div>
 
         <div className="digest-strip">
-          {meaningfulItems.length > 0
+          {digest
+            ? digest
+            : meaningfulItems.length > 0
             ? `${meaningfulItems.length} of ${feed.length} stocks moved meaningfully since you last checked.`
             : feed.length > 0
             ? "Nothing meaningful has changed since you last checked."
@@ -143,6 +150,8 @@ const Dashboard = () => {
           </>
         )}
       </main>
+      <ChatWidget />
+
     </div>
   );
 };
