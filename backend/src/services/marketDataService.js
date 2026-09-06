@@ -1,8 +1,6 @@
 
 
 
-
-
 // const YahooFinance = require("yahoo-finance2").default;
 // const PriceSnapshot = require("../models/PriceSnapshot");
 // const cache = require("./cache");
@@ -11,6 +9,7 @@
 
 // const QUOTE_CACHE_TTL_MS = 15000;
 // const SEARCH_CACHE_TTL_MS = 60000;
+// const INDIAN_EXCHANGES = ["NSI", "BSE"]; // Yahoo's exchange codes for NSE/BSE
 
 // const fetchAndStoreQuote = async (ticker) => {
 //   const cacheKey = `quote:${ticker.toUpperCase()}`;
@@ -89,15 +88,6 @@
 //   }
 // };
 
-// // A usable company name: real text, not just the ticker repeated, not too short/garbled
-// const isUsableName = (name, symbol) => {
-//   if (!name || typeof name !== "string") return false;
-//   const trimmed = name.trim();
-//   if (trimmed.length < 3) return false;
-//   if (trimmed.toUpperCase() === symbol.toUpperCase()) return false; // e.g. "RS" === "RS"
-//   return true;
-// };
-
 // const searchTickers = async (query) => {
 //   const cacheKey = `search:${query.toLowerCase()}`;
 //   const cached = cache.get(cacheKey);
@@ -108,18 +98,20 @@
 
 //     const mapped = (results.quotes || [])
 //       .filter((q) => q.symbol && (q.shortname || q.longname))
-//       .map((q) => {
-//         const rawName = q.longname || q.shortname;
-//         return {
-//           symbol: q.symbol,
-//           name: isUsableName(rawName, q.symbol) ? rawName : q.symbol,
-//           exchange: q.exchange,
-//         };
-//       })
-//       .slice(0, 8);
+//       .map((q) => ({
+//         symbol: q.symbol,
+//         name: q.longname || q.shortname,
+//         exchange: q.exchange,
+//         isIndian: INDIAN_EXCHANGES.includes(q.exchange),
+//       }));
 
-//     cache.set(cacheKey, mapped, SEARCH_CACHE_TTL_MS);
-//     return mapped;
+//     // Indian exchanges first, since that's the primary market this app targets
+//     mapped.sort((a, b) => (b.isIndian ? 1 : 0) - (a.isIndian ? 1 : 0));
+
+//     const final = mapped.slice(0, 8).map(({ isIndian, ...rest }) => rest);
+
+//     cache.set(cacheKey, final, SEARCH_CACHE_TTL_MS);
+//     return final;
 //   } catch (err) {
 //     console.error(`Ticker search failed for "${query}":`, err.message);
 //     throw err;
@@ -141,11 +133,6 @@
 
 
 
-
-
-
-
-
 const YahooFinance = require("yahoo-finance2").default;
 const PriceSnapshot = require("../models/PriceSnapshot");
 const cache = require("./cache");
@@ -154,7 +141,8 @@ const yahooFinance = new YahooFinance();
 
 const QUOTE_CACHE_TTL_MS = 15000;
 const SEARCH_CACHE_TTL_MS = 60000;
-const INDIAN_EXCHANGES = ["NSI", "BSE"]; // Yahoo's exchange codes for NSE/BSE
+const HISTORY_CACHE_TTL_MS = 15 * 60 * 1000; // history barely changes intraday
+const INDIAN_EXCHANGES = ["NSI", "BSE"];
 
 const fetchAndStoreQuote = async (ticker) => {
   const cacheKey = `quote:${ticker.toUpperCase()}`;
@@ -233,6 +221,14 @@ const getQuoteWithFallback = async (ticker) => {
   }
 };
 
+const isUsableName = (name, symbol) => {
+  if (!name || typeof name !== "string") return false;
+  const trimmed = name.trim();
+  if (trimmed.length < 3) return false;
+  if (trimmed.toUpperCase() === symbol.toUpperCase()) return false;
+  return true;
+};
+
 const searchTickers = async (query) => {
   const cacheKey = `search:${query.toLowerCase()}`;
   const cached = cache.get(cacheKey);
@@ -243,14 +239,16 @@ const searchTickers = async (query) => {
 
     const mapped = (results.quotes || [])
       .filter((q) => q.symbol && (q.shortname || q.longname))
-      .map((q) => ({
-        symbol: q.symbol,
-        name: q.longname || q.shortname,
-        exchange: q.exchange,
-        isIndian: INDIAN_EXCHANGES.includes(q.exchange),
-      }));
+      .map((q) => {
+        const rawName = q.longname || q.shortname;
+        return {
+          symbol: q.symbol,
+          name: isUsableName(rawName, q.symbol) ? rawName : q.symbol,
+          exchange: q.exchange,
+          isIndian: INDIAN_EXCHANGES.includes(q.exchange),
+        };
+      });
 
-    // Indian exchanges first, since that's the primary market this app targets
     mapped.sort((a, b) => (b.isIndian ? 1 : 0) - (a.isIndian ? 1 : 0));
 
     const final = mapped.slice(0, 8).map(({ isIndian, ...rest }) => rest);
@@ -263,9 +261,40 @@ const searchTickers = async (query) => {
   }
 };
 
+// 7-day daily closing prices, for the sparkline
+const getHistory = async (ticker) => {
+  const cacheKey = `history:${ticker.toUpperCase()}`;
+  const cached = cache.get(cacheKey);
+  if (cached) return cached;
+
+  try {
+    const end = new Date();
+    const start = new Date();
+    start.setDate(start.getDate() - 10); // small buffer for weekends/holidays
+
+    const result = await yahooFinance.chart(ticker, {
+      period1: start,
+      period2: end,
+      interval: "1d",
+    });
+
+    const closes = (result.quotes || [])
+      .filter((q) => q.close != null)
+      .map((q) => q.close)
+      .slice(-7); // last 7 trading days
+
+    cache.set(cacheKey, closes, HISTORY_CACHE_TTL_MS);
+    return closes;
+  } catch (err) {
+    console.error(`History fetch failed for ${ticker}:`, err.message);
+    return []; // fail quietly — sparkline just won't render
+  }
+};
+
 module.exports = {
   fetchAndStoreQuote,
   getLatestSnapshot,
   getQuoteWithFallback,
   searchTickers,
+  getHistory,
 };
