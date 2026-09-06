@@ -1,3 +1,5 @@
+
+
 // const express = require("express");
 // const router = express.Router();
 // const {
@@ -5,18 +7,21 @@
 //   getWatchlist,
 //   removeFromWatchlist,
 //   updateWatchlistItem,
+//   getWatchlistFeed,
+//   markAsSeen,
 // } = require("../controllers/watchlistController");
 // const { protect } = require("../middleware/authMiddleware");
 
-// router.use(protect); // every route below requires a valid token
+// router.use(protect);
 
+// router.get("/feed", getWatchlistFeed);
 // router.post("/", addToWatchlist);
 // router.get("/", getWatchlist);
 // router.patch("/:id", updateWatchlistItem);
+// router.patch("/:id/seen", markAsSeen);
 // router.delete("/:id", removeFromWatchlist);
 
-// module.exports = router;    
-
+// module.exports = router;
 
 
 
@@ -30,9 +35,7 @@ const {
   addToWatchlist,
   getWatchlist,
   removeFromWatchlist,
-  updateWatchlistItem,
   getWatchlistFeed,
-  markAsSeen,
 } = require("../controllers/watchlistController");
 const { protect } = require("../middleware/authMiddleware");
 
@@ -41,8 +44,6 @@ router.use(protect);
 router.get("/feed", getWatchlistFeed);
 router.post("/", addToWatchlist);
 router.get("/", getWatchlist);
-router.patch("/:id", updateWatchlistItem);
-router.patch("/:id/seen", markAsSeen);
 router.delete("/:id", removeFromWatchlist);
 
 module.exports = router;

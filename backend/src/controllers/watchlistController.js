@@ -1,6 +1,7 @@
 
 
 // const WatchlistItem = require("../models/WatchlistItem");
+// const TickerPopularity = require("../models/TickerPopularity");
 // const { fetchAndStoreQuote, getQuoteWithFallback } = require("../services/marketDataService");
 // const { computeSignificance } = require("../services/significanceService");
 // const { explainMove, generateDigest } = require("../services/aiService");
@@ -28,6 +29,13 @@
 //       companyName: companyName || ticker.toUpperCase(),
 //       sensitivity: sensitivity || "casual",
 //     });
+
+//     // Real cross-user popularity tracking — this powers the recommendations pool
+//     TickerPopularity.findOneAndUpdate(
+//       { ticker: ticker.toUpperCase() },
+//       { $inc: { addCount: 1 }, $set: { companyName: companyName || ticker.toUpperCase() } },
+//       { upsert: true }
+//     ).catch((err) => console.error("Popularity tracking failed:", err.message));
 
 //     res.status(201).json({ item });
 //   } catch (err) {
@@ -179,6 +187,9 @@
 
 
 
+
+
+
 const WatchlistItem = require("../models/WatchlistItem");
 const TickerPopularity = require("../models/TickerPopularity");
 const { fetchAndStoreQuote, getQuoteWithFallback } = require("../services/marketDataService");
@@ -187,7 +198,7 @@ const { explainMove, generateDigest } = require("../services/aiService");
 
 const addToWatchlist = async (req, res) => {
   try {
-    const { ticker, sensitivity, companyName } = req.body;
+    const { ticker, companyName } = req.body;
 
     if (!ticker) {
       return res.status(400).json({ message: "Ticker is required" });
@@ -206,10 +217,8 @@ const addToWatchlist = async (req, res) => {
       user: req.userId,
       ticker: ticker.toUpperCase(),
       companyName: companyName || ticker.toUpperCase(),
-      sensitivity: sensitivity || "casual",
     });
 
-    // Real cross-user popularity tracking — this powers the recommendations pool
     TickerPopularity.findOneAndUpdate(
       { ticker: ticker.toUpperCase() },
       { $inc: { addCount: 1 }, $set: { companyName: companyName || ticker.toUpperCase() } },
@@ -249,26 +258,6 @@ const removeFromWatchlist = async (req, res) => {
   }
 };
 
-const updateWatchlistItem = async (req, res) => {
-  try {
-    const { sensitivity } = req.body;
-
-    const item = await WatchlistItem.findOne({ _id: req.params.id, user: req.userId });
-
-    if (!item) {
-      return res.status(404).json({ message: "Watchlist item not found" });
-    }
-
-    if (sensitivity) item.sensitivity = sensitivity;
-    await item.save();
-
-    res.status(200).json({ item });
-  } catch (err) {
-    console.error("Update watchlist item error:", err.message);
-    res.status(500).json({ message: "Server error updating item" });
-  }
-};
-
 const getWatchlistFeed = async (req, res) => {
   try {
     const items = await WatchlistItem.find({ user: req.userId });
@@ -277,13 +266,12 @@ const getWatchlistFeed = async (req, res) => {
       items.map(async (item) => {
         try {
           const quote = await getQuoteWithFallback(item.ticker);
-          const significance = computeSignificance(item, quote);
+          const significance = await computeSignificance(item, quote);
 
           return {
             id: item._id,
             ticker: item.ticker,
             companyName: item.companyName || item.ticker,
-            sensitivity: item.sensitivity,
             lastSeenPrice: item.lastSeenPrice,
             lastSeenAt: item.lastSeenAt,
             timesChecked: item.timesChecked || 0,
@@ -329,31 +317,9 @@ const getWatchlistFeed = async (req, res) => {
   }
 };
 
-const markAsSeen = async (req, res) => {
-  try {
-    const item = await WatchlistItem.findOne({ _id: req.params.id, user: req.userId });
-    if (!item) {
-      return res.status(404).json({ message: "Watchlist item not found" });
-    }
-
-    const quote = await fetchAndStoreQuote(item.ticker);
-    item.lastSeenPrice = quote.price;
-    item.lastSeenAt = new Date();
-    item.timesChecked = (item.timesChecked || 0) + 1;
-    await item.save();
-
-    res.status(200).json({ item });
-  } catch (err) {
-    console.error("Mark as seen error:", err.message);
-    res.status(502).json({ message: "Could not fetch live price right now — try again shortly" });
-  }
-};
-
 module.exports = {
   addToWatchlist,
   getWatchlist,
   removeFromWatchlist,
-  updateWatchlistItem,
   getWatchlistFeed,
-  markAsSeen,
 };
