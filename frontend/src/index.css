@@ -1389,3 +1389,423 @@ body {
   font-size: 0.7rem;
   color: #8b949e;
 }
+/* =====================================================
+   SHIFT THEME SYSTEM
+   Light mode keeps the existing visual language.
+   Dark mode uses Shift's premium near-black palette.
+===================================================== */
+
+.app-header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.logo-dot {
+  color: #10b981;
+}
+
+.theme-toggle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid #d0d7de;
+  background: #ffffff;
+  color: #57606a;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.05rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease,
+    border-color 0.2s ease, transform 0.2s ease;
+}
+
+.theme-toggle:hover {
+  transform: translateY(-1px);
+  border-color: #10b981;
+  color: #10b981;
+}
+
+/* Slightly stronger Shift branding in the existing light theme */
+.app-logo {
+  color: #ffffff;
+}
+
+.app-tagline {
+  letter-spacing: 0.01em;
+}
+
+/* ---------- Dark theme ---------- */
+
+body.theme-dark {
+  background: #0b0f12;
+  color: #f0f3f5;
+}
+
+body.theme-dark .app-shell {
+  background: #0b0f12;
+}
+
+body.theme-dark .app-header {
+  background: #090d10;
+  border-bottom: 1px solid #1d262c;
+}
+
+body.theme-dark .app-logo,
+body.theme-dark .index-price,
+body.theme-dark .nav-item.active {
+  color: #f5f7f8;
+}
+
+body.theme-dark .app-tagline,
+body.theme-dark .index-name,
+body.theme-dark .nav-item {
+  color: #7f8b94;
+}
+
+body.theme-dark .nav-item.active {
+  border-bottom-color: #10b981;
+}
+
+body.theme-dark .theme-toggle {
+  background: #151c21;
+  border-color: #29343b;
+  color: #f0f3f5;
+}
+
+body.theme-dark .theme-toggle:hover {
+  border-color: #10b981;
+  color: #10b981;
+}
+
+body.theme-dark .user-avatar {
+  background: #10b981;
+  color: #06100c;
+}
+
+body.theme-dark .user-dropdown {
+  background: #151c21;
+  color: #f0f3f5;
+  border: 1px solid #29343b;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.45);
+}
+
+body.theme-dark .user-email {
+  color: #8b949e;
+  border-bottom-color: #29343b;
+}
+
+body.theme-dark .user-dropdown button {
+  background: #10161a;
+  color: #f0f3f5;
+  border-color: #29343b;
+}
+
+/* Dashboard background and controls */
+
+body.theme-dark .tabs-bar-wrapper {
+  background: #0f1418;
+  border-bottom-color: #202a30;
+}
+
+body.theme-dark .watchlist-tab {
+  color: #7f8b94;
+}
+
+body.theme-dark .watchlist-tab.active {
+  color: #f0f3f5;
+  border-bottom-color: #10b981;
+}
+
+body.theme-dark .tab-delete {
+  color: #66727a;
+}
+
+body.theme-dark .add-tab-btn {
+  color: #8b949e;
+  border-color: #29343b;
+}
+
+body.theme-dark .sort-select,
+body.theme-dark .refresh-btn {
+  background: #11181d;
+  color: #f0f3f5;
+  border-color: #29343b;
+}
+
+body.theme-dark .add-ticker-form input,
+body.theme-dark .add-ticker-form select,
+body.theme-dark .markets-search,
+body.theme-dark .news-controls select {
+  background: #11181d;
+  color: #f0f3f5;
+  border-color: #29343b;
+}
+
+body.theme-dark .add-ticker-form input::placeholder,
+body.theme-dark .markets-search::placeholder {
+  color: #66727a;
+}
+
+body.theme-dark .digest-strip {
+  background: #10261f;
+  color: #6ee7b7;
+}
+
+body.theme-dark .section-title,
+body.theme-dark .loading-text,
+body.theme-dark .empty-text {
+  color: #7f8b94;
+}
+
+/* Watchlist cards */
+
+body.theme-dark .watchlist-row {
+  background: #11181d;
+  border-color: #202a30;
+}
+
+body.theme-dark .watchlist-row.highlighted {
+  border-left-color: #10b981;
+  box-shadow: 0 4px 18px rgba(16, 185, 129, 0.08);
+}
+
+body.theme-dark .ticker,
+body.theme-dark .current-price {
+  color: #f0f3f5;
+}
+
+body.theme-dark .ticker-sub,
+body.theme-dark .volatility-note,
+body.theme-dark .since-seen,
+body.theme-dark .checked-count {
+  color: #71808a;
+}
+
+body.theme-dark .ai-summary {
+  background: #1d1830;
+  color: #c4b5fd;
+}
+
+body.theme-dark .row-actions button,
+body.theme-dark .row-actions select {
+  background: #151c21;
+  color: #d8dee3;
+  border-color: #29343b;
+}
+
+body.theme-dark .seen-btn.seen-confirmed {
+  background: #10261f;
+  border-color: #10b981;
+  color: #6ee7b7;
+}
+
+/* Popular picks */
+
+body.theme-dark .popular-sidebar {
+  background: #11181d;
+  border-color: #202a30;
+}
+
+body.theme-dark .popular-title {
+  color: #8b949e;
+}
+
+body.theme-dark .popular-row {
+  background: #151c21;
+  border-color: #29343b;
+}
+
+body.theme-dark .popular-row:hover {
+  background: #1b252b;
+  border-color: #10b981;
+}
+
+body.theme-dark .popular-symbol {
+  color: #71808a;
+}
+
+body.theme-dark .popular-plus {
+  color: #10b981;
+}
+
+/* Chat */
+
+body.theme-dark .chat-panel {
+  background: #11181d;
+  border-color: #29343b;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.45);
+}
+
+body.theme-dark .chat-header {
+  background: #090d10;
+}
+
+body.theme-dark .chat-bubble.assistant {
+  background: #1b2329;
+  color: #d8dee3;
+}
+
+body.theme-dark .chat-input-row {
+  border-top-color: #29343b;
+}
+
+body.theme-dark .chat-input-row input {
+  background: #151c21;
+  color: #ffffff;
+  border-color: #29343b;
+}
+
+body.theme-dark .chat-input-row button {
+  background: #10b981;
+  color: #06100c;
+}
+
+/* Markets / News */
+
+body.theme-dark .movers-toggle button {
+  background: #151c21;
+  color: #d8dee3;
+  border-color: #29343b;
+}
+
+body.theme-dark .movers-toggle button.active {
+  background: #10b981;
+  color: #06100c;
+  border-color: #10b981;
+}
+
+body.theme-dark .mover-row,
+body.theme-dark .news-card {
+  background: #11181d;
+  border-color: #202a30;
+}
+
+body.theme-dark .news-headline {
+  color: #f0f3f5;
+}
+
+body.theme-dark .news-desc {
+  color: #8b949e;
+}
+
+/* Smooth theme transition */
+
+body,
+.app-header,
+.tabs-bar-wrapper,
+.watchlist-row,
+.popular-sidebar,
+.popular-row,
+.chat-panel,
+.sort-select,
+.refresh-btn,
+.add-ticker-form input,
+.add-ticker-form select,
+.markets-search,
+.news-controls select,
+.user-dropdown {
+  transition: background-color 0.25s ease, border-color 0.25s ease,
+    color 0.25s ease;
+}
+
+/* ---------- Login video polish ---------- */
+
+.auth-background-video {
+  filter: brightness(0.34) contrast(1.08);
+}
+
+.auth-video-overlay {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(5, 8, 11, 0.42) 0%,
+      rgba(5, 8, 11, 0.30) 45%,
+      rgba(5, 8, 11, 0.78) 100%
+    );
+}
+
+@media (max-width: 600px) {
+  .auth-brand {
+    top: 45px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: max-content;
+  }
+
+  .auth-logo {
+    font-size: 2.7rem;
+  }
+
+  .auth-tagline {
+    font-size: 0.58rem;
+  }
+}
+
+
+
+
+
+
+
+
+/* ================================
+   FIX POPULAR PICKS DARK MODE
+================================ */
+
+body.theme-dark .popular-sidebar {
+  background: #11181d !important;
+  border-color: #29343b !important;
+}
+
+body.theme-dark .popular-title {
+  color: #9aa6af !important;
+}
+
+body.theme-dark .popular-row {
+  background: #151c21 !important;
+  border-color: #29343b !important;
+}
+
+body.theme-dark .popular-row:hover {
+  background: #1b252b !important;
+  border-color: #10b981 !important;
+}
+
+/* Company name */
+body.theme-dark .popular-row strong,
+body.theme-dark .popular-row b,
+body.theme-dark .popular-name {
+  color: #f3f4f6 !important;
+}
+
+/* Price */
+body.theme-dark .popular-price {
+  color: #f3f4f6 !important;
+}
+
+/* Ticker */
+body.theme-dark .popular-symbol {
+  color: #71808a !important;
+}
+
+/* Green movement */
+body.theme-dark .popular-change.positive {
+  color: #10b981 !important;
+}
+
+/* Red movement */
+body.theme-dark .popular-change.negative {
+  color: #ff4d4d !important;
+}
+
+body.theme-dark .popular-price {
+  color: #ffffff !important;
+}
+
+
+body.theme-dark .current-price-sm {
+  color: #ffffff !important;
+}
