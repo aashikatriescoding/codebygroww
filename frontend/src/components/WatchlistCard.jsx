@@ -1,8 +1,4 @@
 
-
-
-
-
 import Sparkline from "./Sparkline";
 
 const FLAG_LABELS = {
