@@ -32,7 +32,10 @@
 //   return res.data.results;
 // };
 
-
+// export const getPopularPicks = async () => {
+//   const res = await api.get("/market/popular");
+//   return res.data.picks;
+// };
 
 
 
@@ -46,23 +49,13 @@ export const getFeed = async () => {
   return { feed: res.data.feed, digest: res.data.digest };
 };
 
-export const addTicker = async (ticker, sensitivity, companyName) => {
-  const res = await api.post("/watchlist", { ticker, sensitivity, companyName });
+export const addTicker = async (ticker, companyName) => {
+  const res = await api.post("/watchlist", { ticker, companyName });
   return res.data.item;
 };
 
 export const removeTicker = async (id) => {
   await api.delete(`/watchlist/${id}`);
-};
-
-export const markAsSeen = async (id) => {
-  const res = await api.patch(`/watchlist/${id}/seen`);
-  return res.data.item;
-};
-
-export const updateSensitivity = async (id, sensitivity) => {
-  const res = await api.patch(`/watchlist/${id}`, { sensitivity });
-  return res.data.item;
 };
 
 export const searchTickers = async (query) => {

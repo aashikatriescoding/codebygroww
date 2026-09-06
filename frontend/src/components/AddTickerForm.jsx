@@ -1,3 +1,6 @@
+
+
+
 // import { useState, useEffect, useRef } from "react";
 // import { searchTickers } from "../services/watchlistService";
 
@@ -42,12 +45,12 @@
 //     return () => document.removeEventListener("mousedown", handleClickOutside);
 //   }, []);
 
-//   const handleSelect = async (symbol) => {
+//   const handleSelect = async (result) => {
 //     setError("");
 //     setSubmitting(true);
 //     setShowSuggestions(false);
 //     try {
-//       await onAdd(symbol, sensitivity);
+//       await onAdd(result.symbol, sensitivity, result.name);
 //       setQuery("");
 //       setSuggestions([]);
 //     } catch (err) {
@@ -68,19 +71,15 @@
 //           onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
 //         />
 //         <select value={sensitivity} onChange={(e) => setSensitivity(e.target.value)}>
-//           <option value="casual">Casual</option>
-//           <option value="core">Core</option>
+//           <option value="casual">Alerts on big moves</option>
+//           <option value="core">Alerts on any move</option>
 //         </select>
 //       </div>
 
 //       {showSuggestions && suggestions.length > 0 && (
 //         <div className="suggestions-dropdown">
 //           {suggestions.map((s) => (
-//             <div
-//               key={s.symbol}
-//               className="suggestion-item"
-//               onClick={() => handleSelect(s.symbol)}
-//             >
+//             <div key={s.symbol} className="suggestion-item" onClick={() => handleSelect(s)}>
 //               <span className="suggestion-symbol">{s.symbol}</span>
 //               <span className="suggestion-name">{s.name}</span>
 //               <span className="suggestion-exchange">{s.exchange}</span>
@@ -105,6 +104,12 @@
 
 
 
+
+
+
+
+
+
 import { useState, useEffect, useRef } from "react";
 import { searchTickers } from "../services/watchlistService";
 
@@ -112,7 +117,6 @@ const AddTickerForm = ({ onAdd }) => {
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [sensitivity, setSensitivity] = useState("casual");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const debounceRef = useRef(null);
@@ -154,7 +158,7 @@ const AddTickerForm = ({ onAdd }) => {
     setSubmitting(true);
     setShowSuggestions(false);
     try {
-      await onAdd(result.symbol, sensitivity, result.name);
+      await onAdd(result.symbol, result.name);
       setQuery("");
       setSuggestions([]);
     } catch (err) {
@@ -174,10 +178,6 @@ const AddTickerForm = ({ onAdd }) => {
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
         />
-        <select value={sensitivity} onChange={(e) => setSensitivity(e.target.value)}>
-          <option value="casual">Alerts on big moves</option>
-          <option value="core">Alerts on any move</option>
-        </select>
       </div>
 
       {showSuggestions && suggestions.length > 0 && (
@@ -186,7 +186,9 @@ const AddTickerForm = ({ onAdd }) => {
             <div key={s.symbol} className="suggestion-item" onClick={() => handleSelect(s)}>
               <span className="suggestion-symbol">{s.symbol}</span>
               <span className="suggestion-name">{s.name}</span>
-              <span className="suggestion-exchange">{s.exchange}</span>
+              <span className={`suggestion-exchange ${["NSI", "BSE"].includes(s.exchange) ? "exchange-in" : ""}`}>
+                {s.exchange}
+              </span>
             </div>
           ))}
         </div>

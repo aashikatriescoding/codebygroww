@@ -39,6 +39,9 @@
 //   const [error, setError] = useState("");
 //   const [sortBy, setSortBy] = useState("attention");
 //   const [filterBy, setFilterBy] = useState("all");
+//   const [recosHidden, setRecosHidden] = useState(
+//     () => localStorage.getItem("recosHidden") === "true"
+//   );
 
 //   const loadFeed = useCallback(async (isRefresh = false) => {
 //     if (isRefresh) setRefreshing(true);
@@ -60,6 +63,14 @@
 //     const interval = setInterval(() => loadFeed(true), 30000);
 //     return () => clearInterval(interval);
 //   }, [loadFeed]);
+
+//   const toggleRecos = () => {
+//     setRecosHidden((prev) => {
+//       const next = !prev;
+//       localStorage.setItem("recosHidden", String(next));
+//       return next;
+//     });
+//   };
 
 //   const handleAdd = async (ticker, sensitivity, companyName) => {
 //     await addTicker(ticker, sensitivity, companyName);
@@ -125,57 +136,71 @@
 
 //   const meaningfulItems = feed.filter((item) => item.isMeaningful);
 //   const useGroupedView = sortBy === "attention" && filterBy === "all";
+//   const watchlistTickers = feed.map((item) => item.ticker);
 
 //   return (
 //     <div className="app-shell">
 //       <Header />
 
-//       <main className="dashboard">
-//         <div className="dashboard-top">
-//           <AddTickerForm onAdd={handleAdd} />
-//           <select className="sort-select" value={filterBy} onChange={(e) => setFilterBy(e.target.value)}>
-//             {FILTER_OPTIONS.map((opt) => (
-//               <option key={opt.value} value={opt.value}>{opt.label}</option>
-//             ))}
-//           </select>
-//           <select className="sort-select" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-//             {SORT_OPTIONS.map((opt) => (
-//               <option key={opt.value} value={opt.value}>{opt.label}</option>
-//             ))}
-//           </select>
-//           <button className="refresh-btn" onClick={() => loadFeed(true)} disabled={refreshing}>
-//             {refreshing ? "Refreshing..." : "Refresh"}
-//           </button>
-//         </div>
-
-//         {feed.length > 0 && (
-//           <div className="digest-strip">
-//             {digest
-//               ? digest
-//               : meaningfulItems.length > 0
-//               ? `${meaningfulItems.length} of ${feed.length} stocks moved meaningfully since you last checked.`
-//               : "Nothing meaningful has changed since you last checked."}
+//       <div className="dashboard-layout">
+//         <main className="dashboard">
+//           <div className="dashboard-top">
+//             <AddTickerForm onAdd={handleAdd} />
+//             <select className="sort-select" value={filterBy} onChange={(e) => setFilterBy(e.target.value)}>
+//               {FILTER_OPTIONS.map((opt) => (
+//                 <option key={opt.value} value={opt.value}>{opt.label}</option>
+//               ))}
+//             </select>
+//             <select className="sort-select" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+//               {SORT_OPTIONS.map((opt) => (
+//                 <option key={opt.value} value={opt.value}>{opt.label}</option>
+//               ))}
+//             </select>
+//             <button className="refresh-btn" onClick={() => loadFeed(true)} disabled={refreshing}>
+//               {refreshing ? "Refreshing..." : "Refresh"}
+//             </button>
 //           </div>
-//         )}
 
-//         {error && <p className="error">{error}</p>}
+//           {feed.length > 0 && (
+//             <div className="digest-strip">
+//               {digest
+//                 ? digest
+//                 : meaningfulItems.length > 0
+//                 ? `${meaningfulItems.length} of ${feed.length} stocks moved meaningfully since you last checked.`
+//                 : "Nothing meaningful has changed since you last checked."}
+//             </div>
+//           )}
 
-//         {loading ? (
-//           <p className="loading-text">Loading watchlist...</p>
-//         ) : feed.length === 0 ? (
-//           <>
-//             <p className="empty-text">Your watchlist is empty — search above to add a ticker.</p>
-//             <PopularPicks onAdd={handleAdd} />
-//           </>
-//         ) : sortedFeed.length === 0 ? (
-//           <p className="empty-text">No tickers match this filter.</p>
-//         ) : useGroupedView ? (
-//           <>
-//             {meaningfulItems.length > 0 && (
+//           {error && <p className="error">{error}</p>}
+
+//           {loading ? (
+//             <p className="loading-text">Loading watchlist...</p>
+//           ) : feed.length === 0 ? (
+//             <p className="empty-text">Your watchlist is empty — search above or pick from the sidebar.</p>
+//           ) : sortedFeed.length === 0 ? (
+//             <p className="empty-text">No tickers match this filter.</p>
+//           ) : useGroupedView ? (
+//             <>
+//               {meaningfulItems.length > 0 && (
+//                 <section className="feed-section">
+//                   <h2 className="section-title">Needs your attention</h2>
+//                   <div className="feed-list-vertical">
+//                     {meaningfulItems.map((item) => (
+//                       <WatchlistCard
+//                         key={item.id}
+//                         item={item}
+//                         onMarkSeen={handleMarkSeen}
+//                         onRemove={handleRemove}
+//                         onSensitivityChange={handleSensitivityChange}
+//                       />
+//                     ))}
+//                   </div>
+//                 </section>
+//               )}
 //               <section className="feed-section">
-//                 <h2 className="section-title">Needs your attention</h2>
-//                 <div className="feed-list-vertical">
-//                   {meaningfulItems.map((item) => (
+//                 <h2 className="section-title">Everything else</h2>
+//                 <div className="feed-list-vertical quiet-list">
+//                   {feed.filter((i) => !i.isMeaningful).map((item) => (
 //                     <WatchlistCard
 //                       key={item.id}
 //                       item={item}
@@ -186,36 +211,30 @@
 //                   ))}
 //                 </div>
 //               </section>
-//             )}
-//             <section className="feed-section">
-//               <h2 className="section-title">Everything else</h2>
-//               <div className="feed-list-vertical quiet-list">
-//                 {feed.filter((i) => !i.isMeaningful).map((item) => (
-//                   <WatchlistCard
-//                     key={item.id}
-//                     item={item}
-//                     onMarkSeen={handleMarkSeen}
-//                     onRemove={handleRemove}
-//                     onSensitivityChange={handleSensitivityChange}
-//                   />
-//                 ))}
-//               </div>
-//             </section>
-//           </>
-//         ) : (
-//           <div className="feed-list-vertical">
-//             {sortedFeed.map((item) => (
-//               <WatchlistCard
-//                 key={item.id}
-//                 item={item}
-//                 onMarkSeen={handleMarkSeen}
-//                 onRemove={handleRemove}
-//                 onSensitivityChange={handleSensitivityChange}
-//               />
-//             ))}
-//           </div>
-//         )}
-//       </main>
+//             </>
+//           ) : (
+//             <div className="feed-list-vertical">
+//               {sortedFeed.map((item) => (
+//                 <WatchlistCard
+//                   key={item.id}
+//                   item={item}
+//                   onMarkSeen={handleMarkSeen}
+//                   onRemove={handleRemove}
+//                   onSensitivityChange={handleSensitivityChange}
+//                 />
+//               ))}
+//             </div>
+//           )}
+//         </main>
+
+//         <PopularPicks
+//           watchlistTickers={watchlistTickers}
+//           onAdd={handleAdd}
+//           hidden={recosHidden}
+//           onToggleHidden={toggleRecos}
+//         />
+//       </div>
+
 //       <ChatWidget />
 //     </div>
 //   );
@@ -232,24 +251,8 @@
 
 
 
-
-
-
-
-
-
-
-
-
-
 import { useEffect, useState, useCallback, useMemo } from "react";
-import {
-  getFeed,
-  addTicker,
-  removeTicker,
-  markAsSeen,
-  updateSensitivity,
-} from "../services/watchlistService";
+import { getFeed, addTicker, removeTicker } from "../services/watchlistService";
 import WatchlistCard from "../components/WatchlistCard";
 import AddTickerForm from "../components/AddTickerForm";
 import Header from "../components/Header";
@@ -267,8 +270,6 @@ const SORT_OPTIONS = [
 const FILTER_OPTIONS = [
   { value: "all", label: "All tickers" },
   { value: "meaningful", label: "Needs attention only" },
-  { value: "core", label: "Core (alerts on any move)" },
-  { value: "casual", label: "Casual (alerts on big moves)" },
   { value: "gainers", label: "Positive today" },
   { value: "losers", label: "Negative today" },
 ];
@@ -314,8 +315,8 @@ const Dashboard = () => {
     });
   };
 
-  const handleAdd = async (ticker, sensitivity, companyName) => {
-    await addTicker(ticker, sensitivity, companyName);
+  const handleAdd = async (ticker, companyName) => {
+    await addTicker(ticker, companyName);
     await loadFeed();
   };
 
@@ -324,24 +325,10 @@ const Dashboard = () => {
     setFeed((prev) => prev.filter((item) => item.id !== id));
   };
 
-  const handleMarkSeen = async (id) => {
-    await markAsSeen(id);
-    await loadFeed();
-  };
-
-  const handleSensitivityChange = async (id, sensitivity) => {
-    await updateSensitivity(id, sensitivity);
-    await loadFeed();
-  };
-
   const filteredFeed = useMemo(() => {
     switch (filterBy) {
       case "meaningful":
         return feed.filter((item) => item.isMeaningful);
-      case "core":
-        return feed.filter((item) => item.sensitivity === "core");
-      case "casual":
-        return feed.filter((item) => item.sensitivity === "casual");
       case "gainers":
         return feed.filter((item) => !item.error && item.dayChangePercent > 0);
       case "losers":
@@ -428,13 +415,7 @@ const Dashboard = () => {
                   <h2 className="section-title">Needs your attention</h2>
                   <div className="feed-list-vertical">
                     {meaningfulItems.map((item) => (
-                      <WatchlistCard
-                        key={item.id}
-                        item={item}
-                        onMarkSeen={handleMarkSeen}
-                        onRemove={handleRemove}
-                        onSensitivityChange={handleSensitivityChange}
-                      />
+                      <WatchlistCard key={item.id} item={item} onRemove={handleRemove} />
                     ))}
                   </div>
                 </section>
@@ -443,13 +424,7 @@ const Dashboard = () => {
                 <h2 className="section-title">Everything else</h2>
                 <div className="feed-list-vertical quiet-list">
                   {feed.filter((i) => !i.isMeaningful).map((item) => (
-                    <WatchlistCard
-                      key={item.id}
-                      item={item}
-                      onMarkSeen={handleMarkSeen}
-                      onRemove={handleRemove}
-                      onSensitivityChange={handleSensitivityChange}
-                    />
+                    <WatchlistCard key={item.id} item={item} onRemove={handleRemove} />
                   ))}
                 </div>
               </section>
@@ -457,13 +432,7 @@ const Dashboard = () => {
           ) : (
             <div className="feed-list-vertical">
               {sortedFeed.map((item) => (
-                <WatchlistCard
-                  key={item.id}
-                  item={item}
-                  onMarkSeen={handleMarkSeen}
-                  onRemove={handleRemove}
-                  onSensitivityChange={handleSensitivityChange}
-                />
+                <WatchlistCard key={item.id} item={item} onRemove={handleRemove} />
               ))}
             </div>
           )}

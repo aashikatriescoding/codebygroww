@@ -76,7 +76,7 @@ const PopularPicks = ({ watchlistTickers, onAdd, hidden, onToggleHidden }) => {
   const handleAdd = async (pick) => {
     setAddingTicker(pick.ticker);
     try {
-      await onAdd(pick.ticker, "casual", pick.companyName);
+      await onAdd(pick.ticker, pick.companyName);
     } finally {
       setAddingTicker(null);
     }
