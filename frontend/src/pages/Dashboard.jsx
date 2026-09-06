@@ -1,13 +1,7 @@
 
 
 // import { useEffect, useState, useCallback, useMemo } from "react";
-// import {
-//   getFeed,
-//   addTicker,
-//   removeTicker,
-//   markAsSeen,
-//   updateSensitivity,
-// } from "../services/watchlistService";
+// import { getFeed, addTicker, removeTicker } from "../services/watchlistService";
 // import WatchlistCard from "../components/WatchlistCard";
 // import AddTickerForm from "../components/AddTickerForm";
 // import Header from "../components/Header";
@@ -25,8 +19,6 @@
 // const FILTER_OPTIONS = [
 //   { value: "all", label: "All tickers" },
 //   { value: "meaningful", label: "Needs attention only" },
-//   { value: "core", label: "Core (alerts on any move)" },
-//   { value: "casual", label: "Casual (alerts on big moves)" },
 //   { value: "gainers", label: "Positive today" },
 //   { value: "losers", label: "Negative today" },
 // ];
@@ -72,8 +64,8 @@
 //     });
 //   };
 
-//   const handleAdd = async (ticker, sensitivity, companyName) => {
-//     await addTicker(ticker, sensitivity, companyName);
+//   const handleAdd = async (ticker, companyName) => {
+//     await addTicker(ticker, companyName);
 //     await loadFeed();
 //   };
 
@@ -82,24 +74,10 @@
 //     setFeed((prev) => prev.filter((item) => item.id !== id));
 //   };
 
-//   const handleMarkSeen = async (id) => {
-//     await markAsSeen(id);
-//     await loadFeed();
-//   };
-
-//   const handleSensitivityChange = async (id, sensitivity) => {
-//     await updateSensitivity(id, sensitivity);
-//     await loadFeed();
-//   };
-
 //   const filteredFeed = useMemo(() => {
 //     switch (filterBy) {
 //       case "meaningful":
 //         return feed.filter((item) => item.isMeaningful);
-//       case "core":
-//         return feed.filter((item) => item.sensitivity === "core");
-//       case "casual":
-//         return feed.filter((item) => item.sensitivity === "casual");
 //       case "gainers":
 //         return feed.filter((item) => !item.error && item.dayChangePercent > 0);
 //       case "losers":
@@ -186,13 +164,7 @@
 //                   <h2 className="section-title">Needs your attention</h2>
 //                   <div className="feed-list-vertical">
 //                     {meaningfulItems.map((item) => (
-//                       <WatchlistCard
-//                         key={item.id}
-//                         item={item}
-//                         onMarkSeen={handleMarkSeen}
-//                         onRemove={handleRemove}
-//                         onSensitivityChange={handleSensitivityChange}
-//                       />
+//                       <WatchlistCard key={item.id} item={item} onRemove={handleRemove} />
 //                     ))}
 //                   </div>
 //                 </section>
@@ -201,13 +173,7 @@
 //                 <h2 className="section-title">Everything else</h2>
 //                 <div className="feed-list-vertical quiet-list">
 //                   {feed.filter((i) => !i.isMeaningful).map((item) => (
-//                     <WatchlistCard
-//                       key={item.id}
-//                       item={item}
-//                       onMarkSeen={handleMarkSeen}
-//                       onRemove={handleRemove}
-//                       onSensitivityChange={handleSensitivityChange}
-//                     />
+//                     <WatchlistCard key={item.id} item={item} onRemove={handleRemove} />
 //                   ))}
 //                 </div>
 //               </section>
@@ -215,13 +181,7 @@
 //           ) : (
 //             <div className="feed-list-vertical">
 //               {sortedFeed.map((item) => (
-//                 <WatchlistCard
-//                   key={item.id}
-//                   item={item}
-//                   onMarkSeen={handleMarkSeen}
-//                   onRemove={handleRemove}
-//                   onSensitivityChange={handleSensitivityChange}
-//                 />
+//                 <WatchlistCard key={item.id} item={item} onRemove={handleRemove} />
 //               ))}
 //             </div>
 //           )}
@@ -250,14 +210,21 @@
 
 
 
-
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { getFeed, addTicker, removeTicker } from "../services/watchlistService";
+import {
+  getWatchlists,
+  createWatchlist,
+  renameWatchlist,
+  deleteWatchlist,
+  reorderWatchlists,
+} from "../services/watchlistsService";
 import WatchlistCard from "../components/WatchlistCard";
 import AddTickerForm from "../components/AddTickerForm";
 import Header from "../components/Header";
 import ChatWidget from "../components/ChatWidget";
 import PopularPicks from "../components/PopularPicks";
+import WatchlistTabs from "../components/WatchlistTabs";
 
 const SORT_OPTIONS = [
   { value: "attention", label: "Most likely to need attention" },
@@ -275,6 +242,8 @@ const FILTER_OPTIONS = [
 ];
 
 const Dashboard = () => {
+  const [watchlists, setWatchlists] = useState([]);
+  const [activeId, setActiveId] = useState(null);
   const [feed, setFeed] = useState([]);
   const [digest, setDigest] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -286,11 +255,19 @@ const Dashboard = () => {
     () => localStorage.getItem("recosHidden") === "true"
   );
 
-  const loadFeed = useCallback(async (isRefresh = false) => {
+  const loadWatchlists = useCallback(async () => {
+    const lists = await getWatchlists();
+    setWatchlists(lists);
+    if (lists.length > 0) {
+      setActiveId((prev) => prev || lists[0]._id);
+    }
+  }, []);
+
+  const loadFeed = useCallback(async (isRefresh = false, watchlistId) => {
     if (isRefresh) setRefreshing(true);
     setError("");
     try {
-      const { feed: data, digest: aiDigest } = await getFeed();
+      const { feed: data, digest: aiDigest } = await getFeed(watchlistId);
       setFeed(data);
       setDigest(aiDigest);
     } catch (err) {
@@ -302,10 +279,16 @@ const Dashboard = () => {
   }, []);
 
   useEffect(() => {
-    loadFeed();
-    const interval = setInterval(() => loadFeed(true), 30000);
+    loadWatchlists();
+  }, [loadWatchlists]);
+
+  useEffect(() => {
+    if (!activeId) return;
+    setLoading(true);
+    loadFeed(false, activeId);
+    const interval = setInterval(() => loadFeed(true, activeId), 30000);
     return () => clearInterval(interval);
-  }, [loadFeed]);
+  }, [activeId, loadFeed]);
 
   const toggleRecos = () => {
     setRecosHidden((prev) => {
@@ -316,13 +299,38 @@ const Dashboard = () => {
   };
 
   const handleAdd = async (ticker, companyName) => {
-    await addTicker(ticker, companyName);
-    await loadFeed();
+    await addTicker(ticker, companyName, activeId);
+    await loadFeed(false, activeId);
   };
 
   const handleRemove = async (id) => {
     await removeTicker(id);
     setFeed((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const handleCreateWatchlist = async (name) => {
+    const list = await createWatchlist(name);
+    setWatchlists((prev) => [...prev, list]);
+    setActiveId(list._id);
+  };
+
+  const handleRenameWatchlist = async (id, name) => {
+    await renameWatchlist(id, name);
+    setWatchlists((prev) => prev.map((w) => (w._id === id ? { ...w, name } : w)));
+  };
+
+  const handleDeleteWatchlist = async (id) => {
+    await deleteWatchlist(id);
+    const remaining = watchlists.filter((w) => w._id !== id);
+    setWatchlists(remaining);
+    if (activeId === id && remaining.length > 0) {
+      setActiveId(remaining[0]._id);
+    }
+  };
+
+  const handleReorderWatchlists = async (orderedIds) => {
+    setWatchlists((prev) => orderedIds.map((id) => prev.find((w) => w._id === id)));
+    await reorderWatchlists(orderedIds);
   };
 
   const filteredFeed = useMemo(() => {
@@ -371,6 +379,18 @@ const Dashboard = () => {
     <div className="app-shell">
       <Header />
 
+      <div className="tabs-bar-wrapper">
+        <WatchlistTabs
+          watchlists={watchlists}
+          activeId={activeId}
+          onSelect={setActiveId}
+          onCreate={handleCreateWatchlist}
+          onRename={handleRenameWatchlist}
+          onDelete={handleDeleteWatchlist}
+          onReorder={handleReorderWatchlists}
+        />
+      </div>
+
       <div className="dashboard-layout">
         <main className="dashboard">
           <div className="dashboard-top">
@@ -385,7 +405,7 @@ const Dashboard = () => {
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
             </select>
-            <button className="refresh-btn" onClick={() => loadFeed(true)} disabled={refreshing}>
+            <button className="refresh-btn" onClick={() => loadFeed(true, activeId)} disabled={refreshing}>
               {refreshing ? "Refreshing..." : "Refresh"}
             </button>
           </div>
@@ -405,7 +425,7 @@ const Dashboard = () => {
           {loading ? (
             <p className="loading-text">Loading watchlist...</p>
           ) : feed.length === 0 ? (
-            <p className="empty-text">Your watchlist is empty — search above or pick from the sidebar.</p>
+            <p className="empty-text">This watchlist is empty — search above or pick from the sidebar.</p>
           ) : sortedFeed.length === 0 ? (
             <p className="empty-text">No tickers match this filter.</p>
           ) : useGroupedView ? (

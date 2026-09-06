@@ -20,7 +20,7 @@
 //   return `${days}d ago`;
 // };
 
-// const WatchlistCard = ({ item, onRemove, onSensitivityChange }) => {
+// const WatchlistCard = ({ item, onRemove }) => {
 //   if (item.error) {
 //     return (
 //       <div className="watchlist-row error-row">
@@ -36,8 +36,6 @@
 
 //   const isMeaningful = item.isMeaningful;
 //   const changeSinceSeen = item.percentChangeSinceSeen;
-//   // Only show "since last checked" once it's a real, non-trivial comparison —
-//   // hides the noisy 0.00% that shows up right after a baseline reset.
 //   const showSinceSeen = changeSinceSeen !== null && Math.abs(changeSinceSeen) >= 0.01;
 
 //   return (
@@ -45,9 +43,6 @@
 //       <div className="row-title">
 //         <span className="ticker">{item.companyName || item.ticker}</span>
 //         <span className="ticker-sub">{item.ticker}</span>
-//         <span className={`sensitivity-badge ${item.sensitivity}`}>
-//           {item.sensitivity === "core" ? "Any move" : "Big moves"}
-//         </span>
 //       </div>
 
 //       <div className="row-price">
@@ -67,6 +62,9 @@
 //             {changeSinceSeen >= 0 ? "+" : ""}
 //             {changeSinceSeen.toFixed(2)}% since last checked
 //           </div>
+//         )}
+//         {item.normalVolatility != null && (
+//           <div className="volatility-note">Normally moves ~{item.normalVolatility}%/day</div>
 //         )}
 //       </div>
 
@@ -88,10 +86,6 @@
 //       </div>
 
 //       <div className="row-actions">
-//         <select value={item.sensitivity} onChange={(e) => onSensitivityChange(item.id, e.target.value)}>
-//           <option value="core">Any move</option>
-//           <option value="casual">Big moves</option>
-//         </select>
 //         <button className="remove-btn" onClick={() => onRemove(item.id)}>Remove</button>
 //       </div>
 //     </div>
@@ -111,6 +105,12 @@
 
 
 
+
+
+
+
+
+import Sparkline from "./Sparkline";
 
 const FLAG_LABELS = {
   moved_up: { text: "Moved Up", color: "#1a7f37" },
@@ -163,6 +163,10 @@ const WatchlistCard = ({ item, onRemove }) => {
           {item.dayChangePercent >= 0 ? "+" : ""}
           {item.dayChangePercent?.toFixed(2)}% today
         </span>
+      </div>
+
+      <div className="row-chart">
+        <Sparkline ticker={item.ticker} />
       </div>
 
       <div className="row-meta">
